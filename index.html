@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Portfolio Dennis Kirsch</title>
+		<link rel="stylesheet" type="text/css" href="css/style.css">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="UTF-8">
+    </head>
+    <body onload="RopeAssign()">
+        <div class="afk-container" id="afk-container">
+            <img class="afk-imgtext" src="img/cta.png"/>
+            <img class="afk-kman" src="img/kmanGif.gif"/>
+        </div>
+        <img class="curtains" src="img/Curtains.png"/>
+        <div class="ropes-container">
+			<div class="rope" id="0"><img src="img/rope1.png" /><img id="rope0" class="rope-item" src="" /><source id="audio0"></div>
+			<div class="rope" id="1"><img src="img/rope2.png" /><img id="rope1" class="rope-item" src="" /><source id="audio1"></div>
+			<div class="rope" id="2"><img src="img/rope3.png" /><img id="rope2" class="rope-item" src="" /><source id="audio2"></div>
+			<div class="rope" id="3"><img src="img/rope4.png" /><img id="rope3" class="rope-item" src="" /><source id="audio3"></div>
+			<div class="rope" id="4"><img src="img/rope5.png" /><img id="rope4" class="rope-item" src="" /><source id="audio4"></div>
+			<div class="rope" id="5"><img src="img/rope6.png" /><img id="rope5" class="rope-item" src="" /><source id="audio5"></div>
+			<div class="rope" id="6"><img src="img/rope7.png" /><img id="rope6" class="rope-item" src="" /><source id="audio6"></div>
+        </div>
+        <video id="clip" width="400">
+          <source type="video/mp4">
+          <source type="video/ogg">
+          Your browser does not support HTML5 video.
+        </video>
+    </body>
+    <script src="/socket.io/socket.io.js"></script>
+    <script type='text/javascript'>
+        var check = false; 
+    
+        (function() {
+            var socket = io.connect(window.location.hostname + ':' + 3000);
+
+            socket.on('connect', function(data) {
+                socket.emit('join', 'Client is connected!');
+            });
+
+            socket.on('message', function(info) {
+                    console.log('data received: ' + info);
+                    if(check){
+                
+                    }else{                    
+                     RopeMove(info);
+                    }
+                });
+            }());
+
+        document.onkeydown = checkKey;
+        function checkKey(e){
+            e = e || window.event;
+
+            if(e.keyCode == '70'){
+                openFullscreen();
+            }else if(e.keyCode == '67'){
+                var clip = document.getElementById("clip");
+                if(clip.controls == true){
+                    clip.controls = false;
+                }else{                    
+                    clip.controls = true;
+                }
+            }
+                /* 
+            else if (e.keyCode == '50') {
+                RopeMove(1);
+            }
+            else if (e.keyCode == '51') {
+                RopeMove(2);
+            }
+            else if (e.keyCode == '52') {
+                RopeMove(3);
+            }
+            else if (e.keyCode == '53') {
+                RopeMove(4);
+            }
+            else if (e.keyCode == '54') {
+                RopeMove(5);
+            }
+            else if (e.keyCode == '55') {
+                RopeMove(6);               
+            } */
+        }
+
+        //No input
+        var timer;
+        function onInput() {
+            document.getElementById("afk-container").style.display = "none";
+            clearTimeout(timer);
+            timer = setTimeout(displayTip.bind(this), 30000);
+        }
+
+        function displayTip(){
+            document.getElementById("afk-container").style.display = "flex";
+        }
+
+        // load in video files
+		var vidArray =  ["videos/1.mp4", "videos/2.mp4", "videos/3.mp4", "videos/4.mp4", "videos/5.mp4", "videos/6.mp4"];
+        console.log(vidArray);
+		var vp = document.getElementById("clip");
+		var videoNumber = 0;
+        
+        // play a random audio file
+		function playAudio(id){
+			audio = new Audio();
+			audio.src = document.getElementById("audio" + id).src;  
+			audio.loop = false;
+			if(audio.paused)
+			{
+				audio.play();
+			} else 
+			{
+				audio.pause();
+			}
+		}
+
+        function playSound(sound){
+			audio = new Audio();
+			audio.src = sound;  
+			audio.loop = false;
+			if(audio.paused)
+			{
+				audio.play();
+			} else 
+			{
+				audio.pause();
+			}
+		}
+		
+		function playVid(){
+			vp.play();
+            
+		}
+
+        //get rope info from json
+        var jsonFile = "json/ropes.json";
+        var request = new XMLHttpRequest();
+        request.open("GET",jsonFile, false);
+        request.send(null);
+        var ropesJson = JSON.parse(request.responseText);
+
+        //assign random to rope
+        function RopeAssign(){
+            var ropeArray = document.getElementsByClassName("rope");
+            var ropeAmount = ropeArray.length;
+            var effectAmount = ropesJson.ropes.length;
+            var effectArray = [];
+
+            for (let i = 0; i < effectAmount; i++) {
+                effectArray.push(i);
+            }
+
+            var numArray = [];
+            for (let i = 0; i < ropeAmount; i++) {
+                if (i == 0) {
+                    numArray.push(i);
+                    
+                }else{
+                    var randomNum = Math.floor(Math.random() * effectArray.length);
+                    if(randomNum == 0){
+                        randomNum++;
+                    }
+                    numArray.push(effectArray[randomNum]);
+                    
+                    effectArray.splice([randomNum], 1);
+                }
+            }            
+            console.log(numArray);
+
+            for (let i = 0; i < ropeAmount; i++) {
+                var randomID = Math.floor(Math.random() * numArray.length);
+                var ropeNum = numArray[randomID];
+                document.getElementById("rope" + i).src = ropesJson.ropes[ropeNum].rope.img;
+                document.getElementById("rope" + i).alt = ropesJson.ropes[ropeNum].rope.correct;
+                document.getElementById("audio" + i).src = ropesJson.ropes[ropeNum].rope.mp3;
+
+                numArray.splice(randomID, 1);
+            }
+        }
+
+        function ScreenView(id){
+            vp.style.display = "block";
+            RopeReset(id);
+            return;
+        }
+
+        //check if correct vid
+        function CheckCorrectVid(id){
+            console.log(document.getElementById("rope"+id).alt);
+            if (document.getElementById("rope"+id).alt == "true"){
+                setTimeout(() => ScreenView(id), 2000); 
+                setTimeout(() => playVid(), 2010);
+            } else {
+                playAudio(id);
+                setTimeout(() => RopeBack(id), 2010);
+            }
+        }
+
+        //reset positie touwen
+        function RopeReset(id){
+            var rope = document.getElementById(id);  
+            rope.style.top = 0;   
+        }
+
+        //touw omlaag bewegen
+        function RopeBack(id) {
+            check = false;
+            console.log("RopeBack")
+            var rope = document.getElementById(id);   
+            var num = 0;
+            var speed = 6;
+            var height = 1300;
+            var fr = setInterval(frameReset, 5);
+            rope.style.top = "-" + height;
+
+            function frameReset() {
+                if (num >= height) {
+                    //Execute after animation
+                    clearInterval(fr);
+                    }else {
+                    num = num + speed; 
+                    rope.style.top = (-height + num) + "px";
+                }   
+            }
+        }
+
+        //Touw omhoog bewegen
+        function RopeMove(id) {
+            check = true;
+            playSound("audio/ropeup_drums.mp3");
+            onInput();
+            console.log("RopeMove")
+            
+            var rope = document.getElementById(id);   
+            var num = 0;
+            var speed = 4;
+            var height = 1300;
+            var fr = setInterval(frameUp, 7);
+
+            function frameUp() {
+                if (num >= height) {
+                    //Execute after animation
+                    clearInterval(fr);
+                    CheckCorrectVid(id);
+
+                } else if(num > height*0.4 && num < height*0.8) {
+                    speed = Math.round(speed*0.8);
+                    num = num + speed; 
+                    rope.style.top = "-" + num + "px";
+                } else if(num > height*0.8 && num < height) {
+                    speed = Math.round(speed*0.8);
+                    num = num + speed; 
+                    rope.style.top = "-" + num + "px";
+                }else {
+                    num = num + speed; 
+                    rope.style.top = "-" + num + "px";
+                }
+            }
+        }
+
+        // loops through videos of the vidarray and makes sure the correct one gets loaded in
+		function nextVideo(){
+			//loops through videos
+			if(videoNumber < vidArray.length-1){
+                console.log("vidNumber Before = " + videoNumber);
+                console.log("vid Before = " + vidArray[videoNumber]);
+				videoNumber++;
+                console.log("vidNumber After = " + videoNumber);
+                console.log("vid After = " + vidArray[videoNumber]);
+			}
+			else{
+				videoNumber = 0;
+                console.log(vidArray[videoNumber]);
+			}
+			//sources and loads newly assigned video correctly
+			var videoSources = vp.querySelectorAll("source");
+			for(i=0;i<videoSources.length;i++){
+				videoSources[i].src = vidArray[videoNumber];
+			}
+			vp.load();
+		}
+
+        function openFullscreen() {
+            if (vp.requestFullscreen) {
+                vp.requestFullscreen();
+            } else if (vp.mozRequestFullScreen) { /* Firefox */
+                vp.mozRequestFullScreen();
+            } else if (vp.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+                vp.webkitRequestFullscreen();
+            } else if (vp.msRequestFullscreen) { /* IE/Edge */
+                vp.msRequestFullscreen();
+            }
+        }
+
+        function exitFullscreen(){
+            if (vp.ExitFullScreen) {
+            vp.ExitFullScreen();
+            } else if (vp.msExitFullScreen) {
+            vp.msExitFullScreen();
+            } else if (vp.mozExitFullScreen) {
+            vp.mozExitFullScreen();
+            } else if (vp.webkitExitFullScreen) {
+            vp.webkitExitFullScreen();
+            }
+        }
+
+        // resets stuff after a video ends
+		vp.addEventListener("ended", function(){
+			nextVideo();
+			RopeAssign();
+			vp.style.display = "none";
+            check = false;
+		}, false);	
+		
+		window.addEventListener("load", nextVideo);
+    </script>
+</html>
